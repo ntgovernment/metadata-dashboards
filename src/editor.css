@@ -152,6 +152,192 @@ td[data-status="safe-editing"] {
   background-color: #f9d4dd;
 }
 
+.page-editor-table {
+  --editor-ink: #102040;
+  --editor-border: #dee2e6;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 1rem;
+}
+
+.page-editor-table .dt-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.page-editor-table .dt-filter-item,
+.page-editor-table .dataTables_filter label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  color: #444;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.page-editor-table .dt-filter-select,
+.page-editor-table .dataTables_filter input {
+  box-sizing: border-box;
+  width: 200px;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 0.375rem 0.5rem;
+  margin: 0;
+  border: 1px solid #767676;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #212529;
+  font: inherit;
+  font-weight: 400;
+}
+
+.page-editor-table .dataTables_length {
+  margin-left: auto;
+}
+
+.page-editor-table .dataTables_length label {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.page-editor-table .dataTables_length select {
+  width: auto;
+  min-height: 36px;
+}
+
+.page-editor-table .dt-active-filters,
+.page-editor-table .dt-active-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-editor-table .dt-active-filters {
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.page-editor-table .dt-active-filters[hidden] {
+  display: none;
+}
+
+.page-editor-table .dt-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--editor-ink);
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--editor-ink);
+  overflow-wrap: anywhere;
+}
+
+.page-editor-table .dt-pill-remove {
+  flex: none;
+  padding: 0.1rem 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--editor-ink);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.page-editor-table .dt-pill-remove:hover {
+  background: #e9ecef;
+}
+
+.page-editor-table .dt-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#page-metadata-editor {
+  width: 100% !important;
+  min-width: 1100px;
+  margin: 0;
+}
+
+#page-metadata-editor th,
+#page-metadata-editor td {
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+#page-metadata-editor thead th.sorting {
+  position: relative;
+  padding-right: 1.75rem;
+  cursor: pointer;
+}
+
+#page-metadata-editor thead th.sorting::after {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.5rem;
+  content: "\2195";
+  color: #666;
+}
+
+#page-metadata-editor thead th.sorting_asc::after {
+  content: "\2191";
+  color: var(--editor-ink);
+}
+
+#page-metadata-editor thead th.sorting_desc::after {
+  content: "\2193";
+  color: var(--editor-ink);
+}
+
+.page-editor-table .dt-bottom-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.page-editor-table .pagination {
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.page-editor-table .page-link {
+  border: 0;
+  color: var(--editor-ink);
+  background: transparent;
+}
+
+.page-editor-table .page-item.active .page-link {
+  color: #fff;
+  background: var(--editor-ink);
+}
+
+.page-editor-table .page-item.disabled .page-link {
+  color: #666;
+  background: transparent;
+}
+
+.page-editor-table :is(select, input, th, a):focus-visible {
+  outline: 2px solid #003d82;
+  outline-offset: 2px;
+}
+
 @media (max-width: 800px) {
   .editor-page {
     padding: 20px 12px;
@@ -160,5 +346,16 @@ td[data-status="safe-editing"] {
 
   .metadata-table {
     min-width: 980px;
+  }
+
+  .page-editor-table .dt-filter-item,
+  .page-editor-table .dataTables_filter,
+  .page-editor-table .dt-filter-select,
+  .page-editor-table .dataTables_filter input {
+    width: 100%;
+  }
+
+  .page-editor-table .dataTables_length {
+    margin-left: 0;
   }
 }

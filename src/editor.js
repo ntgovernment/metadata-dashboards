@@ -1,4 +1,5 @@
 (() => {
+const tableJQuery = window.jQuery;
 const {
   getWebPath,
   isLocalDevelopment,
@@ -43,6 +44,156 @@ function getLabel(field) {
 
 function getDisplayValue(cell) {
   return cell.dataset.displayValue ?? cell.textContent.trim();
+}
+
+function initialiseTableControls(table) {
+  if (!tableJQuery?.fn?.DataTable) {
+    announce("Table filters are unavailable. Check that jQuery and DataTables are loaded before editor.js.", "error");
+    return;
+  }
+
+  const dtTable = tableJQuery(table).DataTable({
+    paging: true,
+    pageLength: 10,
+    pagingType: "simple_numbers",
+    ordering: true,
+    order: [[3, "asc"]],
+    searching: true,
+    info: true,
+    autoWidth: false,
+    dom: '<"dt-top-ctrl"lf><"dt-table-scroll"t><"dt-bottom-row"ip>',
+    language: { emptyTable: "No pages available.", zeroRecords: "No matching pages." },
+    columnDefs: [{
+      targets: "_all",
+      render(data, type) {
+        if (type === "display") return data;
+        const container = document.createElement("div");
+        container.innerHTML = data;
+        const editable = container.querySelector(".edit_area");
+        return editable ? getDisplayValue(editable) : container.textContent.trim();
+      },
+    }],
+  });
+
+  const filterConfigs = [
+    { label: "Status", colIdx: 1, defaultLabel: "All statuses" },
+    { label: "Type", colIdx: 2, defaultLabel: "All types" },
+    { label: "Content owner", colIdx: 7, defaultLabel: "All content owners" },
+  ];
+  const wrapper = dtTable.table().container();
+  wrapper.classList.add("page-editor-table");
+  const filterBar = document.createElement("div");
+  filterBar.className = "dt-filter-bar";
+  const activeFiltersRow = document.createElement("div");
+  activeFiltersRow.className = "dt-active-filters";
+  activeFiltersRow.hidden = true;
+  const activeLabel = document.createElement("span");
+  activeLabel.textContent = "Applied filters:";
+  const pillsContainer = document.createElement("div");
+  pillsContainer.className = "dt-active-pills";
+  const clearButton = document.createElement("button");
+  clearButton.type = "button";
+  clearButton.className = "dt-clear-filters secondary-action";
+  clearButton.textContent = "Clear filters";
+  activeFiltersRow.append(activeLabel, pillsContainer, clearButton);
+  const filterSelects = new Map();
+  const collator = new Intl.Collator("en", { sensitivity: "base", numeric: true });
+
+  function buildUniqueColValues(colIdx) {
+    return [...new Set(dtTable.cells(null, colIdx).render("filter").toArray().filter(Boolean))]
+      .sort(collator.compare);
+  }
+
+  function refreshFilterOptions() {
+    filterConfigs.forEach((config) => {
+      const select = filterSelects.get(config.colIdx);
+      const selected = select.value;
+      const values = buildUniqueColValues(config.colIdx);
+      if (selected && !values.includes(selected)) values.push(selected);
+      select.replaceChildren(new Option(config.defaultLabel, ""));
+      values.sort(collator.compare).forEach((value) => select.add(new Option(value, value)));
+      select.value = selected;
+    });
+  }
+
+  function applyColumnFilter(config, value) {
+    const escaped = tableJQuery.fn.dataTable.util.escapeRegex(value);
+    dtTable.column(config.colIdx).search(value ? `^${escaped}$` : "", true, false);
+  }
+
+  function updateActiveFilters() {
+    pillsContainer.replaceChildren();
+    function addPill(label, remove) {
+      const pill = document.createElement("span");
+      pill.className = "dt-filter-pill";
+      pill.append(document.createTextNode(label));
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dt-pill-remove";
+      button.textContent = "\u00d7";
+      button.setAttribute("aria-label", `Remove ${label} filter`);
+      button.addEventListener("click", remove);
+      pill.append(button);
+      pillsContainer.append(pill);
+    }
+    if (dtTable.search()) {
+      addPill(`Search: ${dtTable.search()}`, () => {
+        dtTable.search("").draw();
+        wrapper.querySelector(".dataTables_filter input").focus();
+      });
+    }
+    filterConfigs.forEach((config) => {
+      const select = filterSelects.get(config.colIdx);
+      if (!select.value) return;
+      addPill(`${config.label}: ${select.value}`, () => {
+        select.value = "";
+        applyColumnFilter(config, "");
+        dtTable.draw();
+        select.focus();
+      });
+    });
+    activeFiltersRow.hidden = !pillsContainer.childElementCount;
+  }
+
+  filterConfigs.forEach((config) => {
+    const label = document.createElement("label");
+    label.className = "dt-filter-item";
+    const caption = document.createElement("span");
+    caption.className = "dt-filter-label";
+    caption.textContent = config.label;
+    const select = document.createElement("select");
+    select.className = "dt-filter-select";
+    select.addEventListener("change", () => {
+      applyColumnFilter(config, select.value);
+      dtTable.draw();
+    });
+    filterSelects.set(config.colIdx, select);
+    label.append(caption, select);
+    filterBar.append(label);
+  });
+  refreshFilterOptions();
+  filterBar.prepend(wrapper.querySelector(".dataTables_filter"));
+  filterBar.append(wrapper.querySelector(".dataTables_length"));
+  wrapper.prepend(filterBar, activeFiltersRow);
+  wrapper.querySelector(".dt-top-ctrl").remove();
+  dtTable.on("draw.dt", updateActiveFilters);
+  clearButton.addEventListener("click", () => {
+    dtTable.search("");
+    filterConfigs.forEach((config) => {
+      filterSelects.get(config.colIdx).value = "";
+      applyColumnFilter(config, "");
+    });
+    dtTable.draw();
+    filterSelects.get(filterConfigs[0].colIdx).focus();
+  });
+  table.addEventListener("editor:saved", (event) => {
+    dtTable.row(event.target.closest("tr")).invalidate("dom");
+    refreshFilterOptions();
+    dtTable.draw(false);
+    if (!document.activeElement || document.activeElement === document.body) {
+      filterSelects.get(filterConfigs[0].colIdx).focus();
+    }
+  });
 }
 
 function makeControl(field, value) {
@@ -130,6 +281,7 @@ async function saveCell(cell, field, control, originalValue) {
       restoreCell(cell, value);
     }
     announce(`${getLabel(field)} saved.`, "success");
+    cell.dispatchEvent(new CustomEvent("editor:saved", { bubbles: true }));
   } catch (error) {
     control.disabled = false;
     buttons.forEach((button) => {
@@ -147,6 +299,7 @@ async function activateCell(cell) {
 
   const field = cell.dataset.editorField;
   const originalValue = getDisplayValue(cell);
+  cell.dataset.displayValue = originalValue;
   let editValue = originalValue;
 
   if (field === "web-path") {
@@ -175,7 +328,7 @@ async function activateCell(cell) {
   save.addEventListener("click", () => saveCell(cell, field, control, originalValue));
   cancel.addEventListener("click", () => restoreCell(cell, originalValue));
   control.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && !control.disabled) {
       event.preventDefault();
       restoreCell(cell, originalValue);
     }
@@ -212,6 +365,8 @@ function initialiseEditor() {
       activateCell(cell);
     }
   });
+
+  initialiseTableControls(table);
 }
 
 if (document.readyState === "loading") {
