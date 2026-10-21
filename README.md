@@ -12,6 +12,18 @@ Inline editor for a Squiz Matrix Asset Listing. The UI edits asset status, page 
 
 Column order must be: Asset ID, Status, Type, Page name, URL, Page description, Page last updated, Content owner. The local demo uses the same order. Dates sort by their displayed text, not chronologically; Asset IDs containing only numbers sort numerically.
 
+Status-cell backgrounds match the nine swatches in the [Squiz status colours and values reference](https://matrix.squiz.net/manuals/concepts/chapters/squiz-matrix-concepts). Bootstrap striping does not tint these colours. `Archived` is treated as `Archive`, and `Safe Editing` as `Safe Edit`, including workflow variants. The existing status-change choices remain unchanged; displaying workflow colours does not grant additional transitions or bypass Matrix permissions.
+
+## Inline editing
+
+- Click anywhere inside an editable table cell, including its padding, or focus the editable field and press Enter or Space.
+- Opening another editable cell automatically saves the current field if its value changed. The next editor opens only after a successful save. Unchanged fields close without an API request.
+- Save still commits explicitly. Cancel or Escape discards the current unsaved change.
+- Success feedback appears inside the saved cell for three seconds. Validation and API errors remain beside the field; failed saves keep the typed value and the current editor open for correction or retry.
+- Auto-save runs only when opening another editable cell, not when using filters, pagination, or navigating away. Use Save before those actions.
+
+Feedback elements are generated automatically. Existing Squiz Default Format and Page Contents markup do not need changes for these interactions; synchronise the updated `src/editor.js` and `src/editor.css` together.
+
 ## Local development
 
 ```sh
@@ -78,7 +90,7 @@ Local development uses npm-managed jQuery 3.7.1 and DataTables 1.13.x with Boots
 2. After publishing the changes yourself, synchronise the DEV bridge and update Page Contents using the block above. Check that users can access both bridges' library assets.
 3. Confirm the table has the eight columns above and the browser console has no JavaScript errors.
 4. Test combined dropdowns, search, individual pill removal, Clear filters, both header sort directions, and pagination with more than 10 rows.
-5. Test saving Status and Page name while filtered/sorted, including permissions and workflow errors. Confirm rejected saves do not change the displayed value. Verify description saves still target `266108`.
+5. Test manual and automatic saving of Status and Page name while filtered/sorted, including permissions and workflow errors. Confirm rejected saves keep the editor open and preserve the typed value. Check Cancel, Escape, and the three-second inline success message. Verify description saves still target `266108`.
 6. Check keyboard navigation and narrow screens against the surrounding Squiz page styles. Table controls should wrap while the table scrolls horizontally.
 
 The editor creates one `Squiz_Matrix_API` client. Status updates send `cascade: false`; name updates use the `name` attribute; page-description updates use metadata field ID `266108`.

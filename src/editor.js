@@ -16,21 +16,60 @@ const statusOptions = [
   { value: "64", label: "Safe Editing" },
 ];
 
-const statusByLabel = new Map(statusOptions.map((option) => [option.label, option.value]));
+const statusByLabel = new Map(statusOptions.map((option) => [getStatusKey(option.label), option.value]));
+const feedbackTimers = new WeakMap();
+let activeEditor = null;
+let activatingCell = false;
+let feedbackCount = 0;
 
-function setStatusPresentation(cell, label) {
-  const status = label.toLowerCase().replace(/\s+/g, "-");
-  cell.closest("td")?.setAttribute("data-status", status);
+function getStatusKey(label) {
+  return label.trim().toLowerCase()
+    .replace(/^archived$/, "archive")
+    .replace(/^safe editing\b/, "safe edit")
+    .replace(/\s+/g, "-");
 }
 
-function announce(message, kind = "success") {
-  const result = document.querySelector(".editor-results");
+function setStatusPresentation(cell, label) {
+  cell.closest("td")?.setAttribute("data-status", getStatusKey(label));
+}
+
+function getCellFeedback(cell) {
+  const tableCell = cell.closest("td");
+  let result = tableCell.querySelector(".editor-field-result");
+  if (!result) {
+    result = document.createElement("div");
+    result.className = "editor-field-result";
+    result.id = `editor-feedback-${++feedbackCount}`;
+    result.setAttribute("role", "status");
+    result.setAttribute("aria-live", "polite");
+    result.setAttribute("aria-atomic", "true");
+    tableCell.append(result);
+  }
+  return result;
+}
+
+function clearCellFeedback(cell) {
+  const result = getCellFeedback(cell);
+  window.clearTimeout(feedbackTimers.get(result));
+  result.textContent = "";
+  delete result.dataset.kind;
+}
+
+function announce(message, kind = "success", cell = null) {
+  const result = cell ? getCellFeedback(cell) : document.querySelector(".editor-results");
   if (!result) {
     return;
   }
 
+  window.clearTimeout(feedbackTimers.get(result));
   result.textContent = message;
   result.dataset.kind = kind;
+  if (kind === "success") {
+    feedbackTimers.set(result, window.setTimeout(() => {
+      result.textContent = "";
+      delete result.dataset.kind;
+    }, 3000));
+  }
 }
 
 function getLabel(field) {
@@ -190,7 +229,9 @@ function initialiseTableControls(table) {
     dtTable.row(event.target.closest("tr")).invalidate("dom");
     refreshFilterOptions();
     dtTable.draw(false);
-    if (!document.activeElement || document.activeElement === document.body) {
+    if (event.target.isConnected) {
+      event.target.focus();
+    } else if (!document.activeElement || document.activeElement === document.body) {
       filterSelects.get(filterConfigs[0].colIdx).focus();
     }
   });
@@ -201,11 +242,17 @@ function makeControl(field, value) {
     const select = document.createElement("select");
     select.className = "editor-control";
     select.setAttribute("aria-label", "Status");
+    const selectedValue = statusByLabel.get(getStatusKey(value));
+    if (!selectedValue) {
+      const currentOption = new Option(value, "", true, true);
+      currentOption.disabled = true;
+      select.append(currentOption);
+    }
     statusOptions.forEach((option) => {
       const element = document.createElement("option");
       element.value = option.value;
       element.textContent = option.label;
-      element.selected = option.value === statusByLabel.get(value);
+      element.selected = option.value === selectedValue;
       select.append(element);
     });
     return select;
@@ -226,6 +273,7 @@ function makeControl(field, value) {
 function restoreCell(cell, value) {
   cell.replaceChildren(document.createTextNode(value));
   cell.dataset.displayValue = value;
+  if (activeEditor?.cell === cell) activeEditor = null;
   cell.focus();
 }
 
@@ -241,23 +289,35 @@ function validate(field, value) {
   return "";
 }
 
-async function saveCell(cell, field, control, originalValue) {
+async function saveCell(editor) {
+  const { cell, field, control, originalValue, initialControlValue } = editor;
   const value = control.value.trim();
+  if (value === initialControlValue.trim()) {
+    clearCellFeedback(cell);
+    restoreCell(cell, originalValue);
+    return true;
+  }
+
   const validationError = validate(field, value);
   if (validationError) {
-    announce(validationError, "error");
+    announce(validationError, "error", cell);
+    control.setAttribute("aria-invalid", "true");
     control.focus();
-    return;
+    return false;
   }
 
   const row = cell.closest("tr");
   const assetId = row?.dataset.assetId;
   if (!assetId) {
-    announce("This row does not include a Matrix asset ID.", "error");
-    return;
+    announce("This row does not include a Matrix asset ID.", "error", cell);
+    control.focus();
+    return false;
   }
 
+  clearCellFeedback(cell);
+  control.removeAttribute("aria-invalid");
   control.disabled = true;
+  cell.closest("td").setAttribute("aria-busy", "true");
   const buttons = cell.querySelectorAll("button");
   buttons.forEach((button) => {
     button.disabled = true;
@@ -280,23 +340,47 @@ async function saveCell(cell, field, control, originalValue) {
       await updateMetadata(assetId, cell.dataset.metadatafieldid, value);
       restoreCell(cell, value);
     }
-    announce(`${getLabel(field)} saved.`, "success");
+    announce(`${getLabel(field)} saved.`, "success", cell);
     cell.dispatchEvent(new CustomEvent("editor:saved", { bubbles: true }));
+    return true;
   } catch (error) {
     control.disabled = false;
     buttons.forEach((button) => {
       button.disabled = false;
     });
-    announce(error.message || "The change could not be saved.", "error");
+    announce(error.message || "The change could not be saved.", "error", cell);
     control.focus();
+    return false;
+  } finally {
+    cell.closest("td").removeAttribute("aria-busy");
   }
 }
 
+function saveEditor(editor) {
+  if (!editor.saving) {
+    editor.saving = saveCell(editor).finally(() => {
+      editor.saving = null;
+    });
+  }
+  return editor.saving;
+}
+
 async function activateCell(cell) {
-  if (cell.querySelector(".editor-control")) {
+  if (activatingCell || activeEditor?.cell === cell) {
     return;
   }
 
+  activatingCell = true;
+  try {
+    if (activeEditor && !await saveEditor(activeEditor)) return;
+    if (!cell.isConnected) return;
+    await openCell(cell);
+  } finally {
+    activatingCell = false;
+  }
+}
+
+async function openCell(cell) {
   const field = cell.dataset.editorField;
   const originalValue = getDisplayValue(cell);
   cell.dataset.displayValue = originalValue;
@@ -306,12 +390,14 @@ async function activateCell(cell) {
     try {
       editValue = await getWebPath(cell.closest("tr")?.dataset.assetId, cell.dataset.webPath || originalValue);
     } catch (error) {
-      announce(error.message || "The web path could not be loaded.", "error");
+      announce(error.message || "The web path could not be loaded.", "error", cell);
       return;
     }
   }
 
   const control = makeControl(field, editValue);
+  clearCellFeedback(cell);
+  control.setAttribute("aria-describedby", getCellFeedback(cell).id);
   const actions = document.createElement("div");
   actions.className = "editor-actions";
   const save = document.createElement("button");
@@ -323,14 +409,21 @@ async function activateCell(cell) {
   cancel.className = "secondary-action";
   actions.append(save, cancel);
   cell.replaceChildren(control, actions);
+  const editor = { cell, field, control, originalValue, initialControlValue: control.value, saving: null };
+  activeEditor = editor;
   control.focus();
 
-  save.addEventListener("click", () => saveCell(cell, field, control, originalValue));
-  cancel.addEventListener("click", () => restoreCell(cell, originalValue));
+  save.addEventListener("click", () => saveEditor(editor));
+  function cancelEdit() {
+    if (editor.saving) return;
+    clearCellFeedback(cell);
+    restoreCell(cell, originalValue);
+  }
+  cancel.addEventListener("click", cancelEdit);
   control.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !control.disabled) {
       event.preventDefault();
-      restoreCell(cell, originalValue);
+      cancelEdit();
     }
   });
 }
@@ -342,6 +435,8 @@ function initialiseEditor() {
   }
 
   table.querySelectorAll(".edit_area[data-editor-field]").forEach((cell) => {
+    cell.closest("td").classList.add("editor-cell");
+    getCellFeedback(cell);
     cell.tabIndex = 0;
     cell.setAttribute("role", "button");
     cell.dataset.label = getLabel(cell.dataset.editorField);
@@ -352,8 +447,8 @@ function initialiseEditor() {
   });
 
   table.addEventListener("click", (event) => {
-    const cell = event.target.closest(".edit_area[data-editor-field]");
-    if (cell && !event.target.closest("button, input, select, textarea")) {
+    const cell = event.target.closest("td")?.querySelector(".edit_area[data-editor-field]");
+    if (cell && !event.target.closest("button, input, select, textarea, a")) {
       activateCell(cell);
     }
   });

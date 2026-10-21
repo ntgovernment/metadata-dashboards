@@ -1,5 +1,5 @@
 .editor-page {
-  max-width: 1280px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 24px 20px;
 }
@@ -34,6 +34,14 @@ h1 {
   position: relative;
   min-height: 1.4rem;
   cursor: pointer;
+}
+
+.editor-cell {
+  cursor: pointer;
+}
+
+.editor-cell[aria-busy="true"] {
+  cursor: progress;
 }
 
 .edit_area:hover {
@@ -112,44 +120,80 @@ button:disabled {
 
 .editor-results {
   display: none;
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 100;
-  width: min(400px, calc(100vw - 40px));
-  min-height: 60px;
+  margin-top: 1rem;
   padding: 1rem;
   font-weight: 600;
 }
 
-.editor-results[data-kind="success"] {
+.editor-field-result {
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.editor-field-result[data-kind] {
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.editor-results[data-kind="success"],
+.editor-field-result[data-kind="success"] {
   display: block;
   color: #176b2c;
   border: 1px solid #badbcc;
   background-color: #d1e7dd;
 }
 
-.editor-results[data-kind="error"] {
+.editor-results[data-kind="error"],
+.editor-field-result[data-kind="error"] {
   display: block;
   color: #ad1f1f;
   border: 1px solid #f5c6cb;
   background-color: #f8d7da;
 }
 
-td[data-status="archive"] {
-  background-color: #e6d0c3;
+#page-metadata-editor td[data-status] {
+  --bs-table-accent-bg: transparent;
+  --bs-table-striped-bg: transparent;
+  color: #1a1a1a;
+  box-shadow: none;
 }
 
-td[data-status="under-construction"] {
-  background-color: #d3e8f6;
+#page-metadata-editor td[data-status="archive"] {
+  background-color: #c2b0a0;
 }
 
-td[data-status="live"] {
-  background-color: #e4f1a5;
+#page-metadata-editor td[data-status="under-construction"] {
+  background-color: #aaccdd;
 }
 
-td[data-status="safe-editing"] {
-  background-color: #f9d4dd;
+#page-metadata-editor td[data-status="pending-approval"] {
+  background-color: #dcd2e6;
+}
+
+#page-metadata-editor td[data-status="approved"] {
+  background-color: #f3d426;
+}
+
+#page-metadata-editor td[data-status="live"] {
+  background-color: #dbf18a;
+}
+
+#page-metadata-editor td[data-status="up-for-review"] {
+  background-color: #50d002;
+}
+
+#page-metadata-editor td[data-status="safe-edit"] {
+  background-color: #f25c86;
+}
+
+#page-metadata-editor td[data-status="safe-edit-pending-approval"] {
+  background-color: #cc7cc7;
+}
+
+#page-metadata-editor td[data-status="safe-edit-approved"] {
+  background-color: #ff9a02;
 }
 
 .page-editor-table {
@@ -358,4 +402,49 @@ td[data-status="safe-editing"] {
   .page-editor-table .dataTables_length {
     margin-left: 0;
   }
+}
+
+/* Asset ID */
+#page-metadata-editor :is(th, td):nth-child(1) {
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+/* Status, including its editing controls */
+#page-metadata-editor :is(th, td):nth-child(2) {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+/* Type */
+#page-metadata-editor :is(th, td):nth-child(3) {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+/* Page name */
+#page-metadata-editor :is(th, td):nth-child(4) {
+  min-width: 250px;
+}
+
+/* URL */
+#page-metadata-editor :is(th, td):nth-child(5) {
+  min-width: 280px;
+}
+
+/* Description */
+#page-metadata-editor :is(th, td):nth-child(6) {
+  min-width: 300px;
+}
+
+/* Last updated */
+#page-metadata-editor :is(th, td):nth-child(7) {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+/* Content owner */
+#page-metadata-editor :is(th, td):nth-child(8) {
+  min-width: 150px;
+  white-space: nowrap;
 }
