@@ -27,21 +27,19 @@ Feedback elements are generated automatically. Existing Squiz Default Format and
 
 ## Design System presentation
 
-The editor uses the same NTG Central Design System component classes as the HR policy library: `ntgc-form-input--label`, `ntgc-text-input`, `ntgc-select`, `ntgc-btn`, and `ntgc-pagination`. DataTables still manages search, filters, sorting, page size, and page navigation; a presentation-only adapter reapplies DS classes when its generated controls are redrawn. Save, Cancel, automatic saving, Matrix API calls, date sorting, status colours, and scroll preservation are unchanged.
+The editor retains the NTG Central Design System component classes, but `src/editor.css` now supplies all editor-specific control styles directly. Its appearance no longer depends on the surrounding page loading the same DS stylesheet as the HR policy library. DataTables still manages search, filters, sorting, page size, and page navigation; the existing presentation-only adapter reapplies classes when controls are redrawn. Save, Cancel, automatic saving, Matrix API calls, date sorting, status colours, and scroll preservation are unchanged.
 
-Save and Cancel use compact pill-sized buttons inside editing cells, with an outlined secondary Cancel button and DS hover/focus colours. These size overrides are scoped to `.editor-actions` and do not change other DS controls.
+Save and Cancel use compact pill-sized buttons inside editing cells, with an outlined Cancel button. Save hovers dark blue; Cancel hovers light grey with navy text. Styling is scoped to the editor and does not change other page controls.
 
-The standalone preview imports `src/ntgc-design-system.css`, an unmodified snapshot of the HR policy library's saved `main.css`, after Bootstrap and before the editor stylesheet. Roboto is loaded from Google Fonts for the preview. Do not hand-edit the DS snapshot; refresh it from the shared Design System when that version changes. The snapshot includes a legacy CSS rule that the build warns about and four Matrix asset URLs that resolve only in Squiz; those assets are not used by the editor's controls.
+The standalone preview loads Bootstrap and then `src/editor.css`, matching the production setup. Roboto is loaded from Google Fonts for the preview; Squiz uses its existing fonts, with Arial as a fallback if Roboto is unavailable. The full DS stylesheet snapshot is no longer needed or included.
 
-In Squiz, reuse the Design System stylesheet and fonts already provided by the NTG Central page design. Do not add a second copy when they are already loaded. Keep `src/editor.css` after the shared styles. The page should use the same NTG Central design context as HR policy; the local demo uses `ntg-central au-grid` on the body and `ntgc-body` on the editor wrapper.
-
-If the target page design does not load the shared Design System, include the snapshot once, after Bootstrap and before `src/editor.css`:
+In Squiz, keep the editor stylesheet after Bootstrap and any shared site styles:
 
 ```html
-<link rel="stylesheet" href="%globals_asset_url_with_hash:1005419:src/ntgc-design-system.css%">
+<link rel="stylesheet" href="%globals_asset_url_with_hash:1005419:src/editor.css%">
 ```
 
-The existing Default Format, field attributes, table ID, and script order remain unchanged. The `.editor-page` wrapper can additionally have `ntgc-body` for the DS content context. Verify the surrounding page's stylesheet order in Squiz DEV; do not copy the HR policy library's filtering or pagination scripts into this editor.
+If you added a separate `src/ntgc-design-system.css` link for this editor, remove that link. Do not remove shared DS styles used by the rest of the site. The existing Default Format, field attributes, table ID, and script order remain unchanged. No DS-specific wrapper classes are required; keep `.editor-page` for page spacing. Verify the result against the surrounding Squiz page styles in DEV.
 
 ## Local development
 
