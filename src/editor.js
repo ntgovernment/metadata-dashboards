@@ -26,6 +26,7 @@ function getStatusKey(label) {
   return label.trim().toLowerCase()
     .replace(/^archived$/, "archive")
     .replace(/^safe editing\b/, "safe edit")
+    .replace(/^(approved|safe edit approved) to go live$/, "$1")
     .replace(/\s+/g, "-");
 }
 
@@ -85,6 +86,37 @@ function getDisplayValue(cell) {
   return cell.dataset.displayValue ?? cell.textContent.trim();
 }
 
+function getDateSortValue(value) {
+  const parts = value.trim().match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/i);
+  if (!parts) return Number.MIN_SAFE_INTEGER;
+  const months = ["january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december"];
+  const monthLabel = parts[2].toLowerCase();
+  const month = months.findIndex((name) => name === monthLabel || name.slice(0, 3) === monthLabel
+    || (name === "september" && monthLabel === "sept"));
+  const day = Number(parts[1]);
+  const year = Number(parts[3]);
+  const date = new Date(Date.UTC(year, month, day));
+  if (month < 0 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month
+    || date.getUTCDate() !== day) return Number.MIN_SAFE_INTEGER;
+  return date.getTime();
+}
+
+function preserveScrollPosition(element) {
+  const positions = [];
+  for (let parent = element.parentElement; parent; parent = parent.parentElement) {
+    positions.push({ element: parent, left: parent.scrollLeft, top: parent.scrollTop });
+  }
+  const left = window.scrollX;
+  const top = window.scrollY;
+  return () => {
+    positions.forEach((position) => position.element.scrollTo({
+      left: position.left, top: position.top, behavior: "instant",
+    }));
+    window.scrollTo({ left, top, behavior: "instant" });
+  };
+}
+
 function initialiseTableControls(table) {
   if (!tableJQuery?.fn?.DataTable) {
     announce("Table filters are unavailable. Check that jQuery and DataTables are loaded before editor.js.", "error");
@@ -104,12 +136,16 @@ function initialiseTableControls(table) {
     language: { emptyTable: "No pages available.", zeroRecords: "No matching pages." },
     columnDefs: [{
       targets: "_all",
-      render(data, type) {
+      render(data, type, row, meta) {
         if (type === "display") return data;
         const container = document.createElement("div");
         container.innerHTML = data;
         const editable = container.querySelector(".edit_area");
-        return editable ? getDisplayValue(editable) : container.textContent.trim();
+        const value = editable ? getDisplayValue(editable) : container.textContent.trim();
+        if (meta.col === 6 && (type === "sort" || type === "type")) {
+          return getDateSortValue(value);
+        }
+        return value;
       },
     }],
   });
@@ -226,14 +262,18 @@ function initialiseTableControls(table) {
     filterSelects.get(filterConfigs[0].colIdx).focus();
   });
   table.addEventListener("editor:saved", (event) => {
+    const restoreScroll = preserveScrollPosition(table);
     dtTable.row(event.target.closest("tr")).invalidate("dom");
     refreshFilterOptions();
     dtTable.draw(false);
-    if (event.target.isConnected) {
-      event.target.focus();
-    } else if (!document.activeElement || document.activeElement === document.body) {
-      filterSelects.get(filterConfigs[0].colIdx).focus();
+    if (!activatingCell) {
+      if (event.target.isConnected) {
+        event.target.focus({ preventScroll: true });
+      } else if (!document.activeElement || document.activeElement === document.body) {
+        filterSelects.get(filterConfigs[0].colIdx).focus({ preventScroll: true });
+      }
     }
+    restoreScroll();
   });
 }
 
@@ -274,7 +314,7 @@ function restoreCell(cell, value) {
   cell.replaceChildren(document.createTextNode(value));
   cell.dataset.displayValue = value;
   if (activeEditor?.cell === cell) activeEditor = null;
-  cell.focus();
+  if (!activatingCell) cell.focus({ preventScroll: true });
 }
 
 function validate(field, value) {
@@ -302,7 +342,7 @@ async function saveCell(editor) {
   if (validationError) {
     announce(validationError, "error", cell);
     control.setAttribute("aria-invalid", "true");
-    control.focus();
+    control.focus({ preventScroll: true });
     return false;
   }
 
@@ -310,7 +350,7 @@ async function saveCell(editor) {
   const assetId = row?.dataset.assetId;
   if (!assetId) {
     announce("This row does not include a Matrix asset ID.", "error", cell);
-    control.focus();
+    control.focus({ preventScroll: true });
     return false;
   }
 
@@ -349,7 +389,7 @@ async function saveCell(editor) {
       button.disabled = false;
     });
     announce(error.message || "The change could not be saved.", "error", cell);
-    control.focus();
+    control.focus({ preventScroll: true });
     return false;
   } finally {
     cell.closest("td").removeAttribute("aria-busy");
@@ -371,11 +411,13 @@ async function activateCell(cell) {
   }
 
   activatingCell = true;
+  const restoreScroll = preserveScrollPosition(cell);
   try {
     if (activeEditor && !await saveEditor(activeEditor)) return;
     if (!cell.isConnected) return;
     await openCell(cell);
   } finally {
+    restoreScroll();
     activatingCell = false;
   }
 }
@@ -411,7 +453,7 @@ async function openCell(cell) {
   cell.replaceChildren(control, actions);
   const editor = { cell, field, control, originalValue, initialControlValue: control.value, saving: null };
   activeEditor = editor;
-  control.focus();
+  control.focus({ preventScroll: true });
 
   save.addEventListener("click", () => saveEditor(editor));
   function cancelEdit() {

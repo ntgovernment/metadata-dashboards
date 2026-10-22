@@ -10,14 +10,15 @@ Inline editor for a Squiz Matrix Asset Listing. The UI edits asset status, page 
 - Pagination starts at 10 rows and includes a page-length selector.
 - Successful saves refresh search, sorting, and filter options without resetting the selected filters.
 
-Column order must be: Asset ID, Status, Type, Page name, URL, Page description, Page last updated, Content owner. The local demo uses the same order. Dates sort by their displayed text, not chronologically; Asset IDs containing only numbers sort numerically.
+Column order must be: Asset ID, Status, Type, Page name, URL, Page description, Page last updated, Content owner. The local demo uses the same order. Last-updated dates sort chronologically in either direction, supporting `30 Oct 2024` and `20 October 2026` (including `Sept`). Display and search retain the readable text. Empty or invalid dates sort before valid dates ascending and after them descending. Asset IDs containing only numbers sort numerically.
 
-Status-cell backgrounds match the nine swatches in the [Squiz status colours and values reference](https://matrix.squiz.net/manuals/concepts/chapters/squiz-matrix-concepts). Bootstrap striping does not tint these colours. `Archived` is treated as `Archive`, and `Safe Editing` as `Safe Edit`, including workflow variants. The existing status-change choices remain unchanged; displaying workflow colours does not grant additional transitions or bypass Matrix permissions.
+Status-cell backgrounds match the nine swatches in the [Squiz status colours and values reference](https://matrix.squiz.net/manuals/concepts/chapters/squiz-matrix-concepts). Bootstrap striping does not tint these colours. `Archived` is treated as `Archive`, and `Safe Editing` as `Safe Edit`, including workflow variants. `Approved To Go Live` uses the yellow `Approved` colour; `Safe Edit Approved To Go Live` uses orange. The existing status-change choices remain unchanged; displaying workflow colours does not grant additional transitions or bypass Matrix permissions.
 
 ## Inline editing
 
 - Click anywhere inside an editable table cell, including its padding, or focus the editable field and press Enter or Space.
 - Opening another editable cell automatically saves the current field if its value changed. The next editor opens only after a successful save. Unchanged fields close without an API request.
+- Focus moves directly to the next input without scrolling back to the saved field. Table redraws preserve horizontal and vertical scroll positions.
 - Save still commits explicitly. Cancel or Escape discards the current unsaved change.
 - Success feedback appears inside the saved cell for three seconds. Validation and API errors remain beside the field; failed saves keep the typed value and the current editor open for correction or retry.
 - Auto-save runs only when opening another editable cell, not when using filters, pagination, or navigating away. Use Save before those actions.
