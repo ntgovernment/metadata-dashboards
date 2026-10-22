@@ -25,6 +25,24 @@ Status-cell backgrounds match the nine swatches in the [Squiz status colours and
 
 Feedback elements are generated automatically. Existing Squiz Default Format and Page Contents markup do not need changes for these interactions; synchronise the updated `src/editor.js` and `src/editor.css` together.
 
+## Design System presentation
+
+The editor uses the same NTG Central Design System component classes as the HR policy library: `ntgc-form-input--label`, `ntgc-text-input`, `ntgc-select`, `ntgc-btn`, and `ntgc-pagination`. DataTables still manages search, filters, sorting, page size, and page navigation; a presentation-only adapter reapplies DS classes when its generated controls are redrawn. Save, Cancel, automatic saving, Matrix API calls, date sorting, status colours, and scroll preservation are unchanged.
+
+Save and Cancel use compact pill-sized buttons inside editing cells, with an outlined secondary Cancel button and DS hover/focus colours. These size overrides are scoped to `.editor-actions` and do not change other DS controls.
+
+The standalone preview imports `src/ntgc-design-system.css`, an unmodified snapshot of the HR policy library's saved `main.css`, after Bootstrap and before the editor stylesheet. Roboto is loaded from Google Fonts for the preview. Do not hand-edit the DS snapshot; refresh it from the shared Design System when that version changes. The snapshot includes a legacy CSS rule that the build warns about and four Matrix asset URLs that resolve only in Squiz; those assets are not used by the editor's controls.
+
+In Squiz, reuse the Design System stylesheet and fonts already provided by the NTG Central page design. Do not add a second copy when they are already loaded. Keep `src/editor.css` after the shared styles. The page should use the same NTG Central design context as HR policy; the local demo uses `ntg-central au-grid` on the body and `ntgc-body` on the editor wrapper.
+
+If the target page design does not load the shared Design System, include the snapshot once, after Bootstrap and before `src/editor.css`:
+
+```html
+<link rel="stylesheet" href="%globals_asset_url_with_hash:1005419:src/ntgc-design-system.css%">
+```
+
+The existing Default Format, field attributes, table ID, and script order remain unchanged. The `.editor-page` wrapper can additionally have `ntgc-body` for the DS content context. Verify the surrounding page's stylesheet order in Squiz DEV; do not copy the HR policy library's filtering or pagination scripts into this editor.
+
 ## Local development
 
 ```sh

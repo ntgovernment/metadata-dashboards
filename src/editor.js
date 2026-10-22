@@ -168,7 +168,7 @@ function initialiseTableControls(table) {
   pillsContainer.className = "dt-active-pills";
   const clearButton = document.createElement("button");
   clearButton.type = "button";
-  clearButton.className = "dt-clear-filters secondary-action";
+  clearButton.className = "dt-clear-filters secondary-action ntgc-btn ntgc-btn--tertiary";
   clearButton.textContent = "Clear filters";
   activeFiltersRow.append(activeLabel, pillsContainer, clearButton);
   const filterSelects = new Map();
@@ -200,7 +200,7 @@ function initialiseTableControls(table) {
     pillsContainer.replaceChildren();
     function addPill(label, remove) {
       const pill = document.createElement("span");
-      pill.className = "dt-filter-pill";
+      pill.className = "dt-filter-pill ntgc-pill";
       pill.append(document.createTextNode(label));
       const button = document.createElement("button");
       button.type = "button";
@@ -234,10 +234,10 @@ function initialiseTableControls(table) {
     const label = document.createElement("label");
     label.className = "dt-filter-item";
     const caption = document.createElement("span");
-    caption.className = "dt-filter-label";
+    caption.className = "dt-filter-label ntgc-form-input--label";
     caption.textContent = config.label;
     const select = document.createElement("select");
-    select.className = "dt-filter-select";
+    select.className = "dt-filter-select ntgc-select ntgc-select--block ntgc-select-input--filter";
     select.addEventListener("change", () => {
       applyColumnFilter(config, select.value);
       dtTable.draw();
@@ -252,6 +252,30 @@ function initialiseTableControls(table) {
   wrapper.prepend(filterBar, activeFiltersRow);
   wrapper.querySelector(".dt-top-ctrl").remove();
   dtTable.on("draw.dt", updateActiveFilters);
+  function styleTableControls() {
+    wrapper.querySelectorAll(".dataTables_filter label, .dataTables_length label").forEach((label) => {
+      label.classList.add("ntgc-form-input--label");
+    });
+    const search = wrapper.querySelector(".dataTables_filter input");
+    search.classList.remove("form-control", "form-control-sm");
+    search.classList.add("ntgc-text-input", "ntgc-text-input--block", "ntgc-select-input--filter");
+    const length = wrapper.querySelector(".dataTables_length select");
+    length.classList.remove("form-select", "form-select-sm", "custom-select", "custom-select-sm", "form-control", "form-control-sm");
+    length.classList.add("ntgc-select");
+    wrapper.querySelectorAll(".dataTables_paginate .pagination").forEach((list) => {
+      list.classList.add("ntgc-pagination");
+      list.querySelectorAll("li").forEach((item) => {
+        item.classList.add("ntgc-pagination-item");
+        const link = item.querySelector("a");
+        if (!link) return;
+        link.classList.remove("page-link");
+        link.classList.add("ntgc-pagination__link");
+        link.classList.toggle("ntgc-pagination__link--current", item.classList.contains("active"));
+      });
+    });
+  }
+  styleTableControls();
+  dtTable.on("draw.dt", styleTableControls);
   clearButton.addEventListener("click", () => {
     dtTable.search("");
     filterConfigs.forEach((config) => {
@@ -280,7 +304,7 @@ function initialiseTableControls(table) {
 function makeControl(field, value) {
   if (field === "status") {
     const select = document.createElement("select");
-    select.className = "editor-control";
+    select.className = "editor-control ntgc-select ntgc-select--block";
     select.setAttribute("aria-label", "Status");
     const selectedValue = statusByLabel.get(getStatusKey(value));
     if (!selectedValue) {
@@ -299,7 +323,7 @@ function makeControl(field, value) {
   }
 
   const control = document.createElement(field === "description" ? "textarea" : "input");
-  control.className = "editor-control";
+  control.className = "editor-control ntgc-text-input ntgc-text-input--block";
   control.setAttribute("aria-label", getLabel(field));
   control.value = value;
   if (field === "description") {
@@ -444,11 +468,12 @@ async function openCell(cell) {
   actions.className = "editor-actions";
   const save = document.createElement("button");
   save.type = "button";
+  save.className = "ntgc-btn ntgc-btn--primary";
   save.textContent = "Save";
   const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.textContent = "Cancel";
-  cancel.className = "secondary-action";
+  cancel.className = "secondary-action ntgc-btn ntgc-btn--secondary";
   actions.append(save, cancel);
   cell.replaceChildren(control, actions);
   const editor = { cell, field, control, originalValue, initialControlValue: control.value, saving: null };
