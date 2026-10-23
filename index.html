@@ -4,43 +4,73 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Page Metadata Editor</title>
-    <link rel="stylesheet" href="/src/editor.css" />
-    <script type="module" src="/src/matrix-api.js"></script>
-    <script type="module" src="/src/editor.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+    <script type="module">
+      import "bootstrap/dist/css/bootstrap.min.css";
+      import "/src/editor.css";
+      import jQuery from "jquery";
+      import "datatables.net-bs5";
+      window.jQuery = jQuery;
+      await import("/src/matrix-api.js");
+      await import("/src/editor.js");
+    </script>
   </head>
-  <body>
-    <main class="editor-page">
+  <body class="ntg-central au-grid">
+    <main class="editor-page ntgc-body">
       <h1>Page metadata editor</h1>
-      <table id="page-metadata-editor" class="metadata-table">
+      <table id="page-metadata-editor" class="metadata-table table table-striped">
         <thead>
           <tr>
-            <th scope="col">No</th>
             <th scope="col">Asset ID</th>
             <th scope="col">Status</th>
             <th scope="col">Type</th>
             <th scope="col">Page name</th>
             <th scope="col">URL</th>
             <th scope="col">Page description</th>
+            <th scope="col">Page last updated</th>
+            <th scope="col">Content owner</th>
           </tr>
         </thead>
         <tbody>
           <tr data-asset-id="local-example-1001">
-            <td>1</td>
             <td>local-example-1001</td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Live</div></td>
             <td>Standard Page</td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="name">About our services</div></td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="web-path" data-web-path="/about/our-services">https://example.local/about/our-services</div></td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Find information about the services we provide.</div></td>
+            <td>30 Oct 2024</td>
+            <td>Communications</td>
           </tr>
           <tr data-asset-id="local-example-1002">
-            <td>2</td>
             <td>local-example-1002</td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Safe Editing</div></td>
             <td>Standard Page</td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="name">Contact us</div></td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="web-path" data-web-path="/contact">https://example.local/contact</div></td>
             <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Ways to contact the department.</div></td>
+            <td>05 Feb 2024</td>
+            <td>Digital services</td>
+          </tr>
+          <tr data-asset-id="local-example-1003">
+            <td>local-example-1003</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Approved To Go Live</div></td>
+            <td>Redirect Page</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">Apply online</div></td>
+            <td>https://example.local/apply</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Apply for services online.</div></td>
+            <td>03 May 2023</td>
+            <td>Digital services</td>
+          </tr>
+          <tr data-asset-id="local-example-1004">
+            <td>local-example-1004</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Under Construction</div></td>
+            <td>Standard Page</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">News and updates</div></td>
+            <td>https://example.local/news</td>
+            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Latest department news.</div></td>
+            <td>01 January 2025</td>
+            <td>Communications</td>
           </tr>
         </tbody>
       </table>

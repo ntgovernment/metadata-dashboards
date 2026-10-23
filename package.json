@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "bootstrap": "^5.0.2",
+    "datatables.net-bs5": "^1.13.11",
+    "jquery": "^3.7.1"
   }
 }
