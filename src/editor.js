@@ -223,7 +223,7 @@
       "dt-clear-filters secondary-action ntgc-btn ntgc-btn--tertiary";
     clearButton.textContent = "Clear filters";
     activeFiltersRow.append(activeLabel, pillsContainer, clearButton);
-    const filterSelects = new Map();
+    const filterControls = new Map();
     const collator = new Intl.Collator("en", {
       sensitivity: "base",
       numeric: true,
@@ -243,23 +243,52 @@
 
     function refreshFilterOptions() {
       filterConfigs.forEach((config) => {
-        const select = filterSelects.get(config.colIdx);
-        const selected = select.value;
-        const values = buildUniqueColValues(config.colIdx);
-        if (selected && !values.includes(selected)) values.push(selected);
-        select.replaceChildren(new Option(config.defaultLabel, ""));
-        values
-          .sort(collator.compare)
-          .forEach((value) => select.add(new Option(value, value)));
-        select.value = selected;
+        const filter = filterControls.get(config.colIdx);
+        const values = [
+          ...new Set([
+            ...buildUniqueColValues(config.colIdx),
+            ...filter.selected,
+          ]),
+        ].sort(collator.compare);
+        filter.options.replaceChildren();
+        values.forEach((value) => {
+          const label = document.createElement("label");
+          label.className = "dt-filter-option";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = value;
+          checkbox.checked = filter.selected.has(value);
+          label.append(checkbox, document.createTextNode(value));
+          filter.options.append(label);
+        });
+        updateFilterSummary(config);
       });
     }
 
-    function applyColumnFilter(config, value) {
-      const escaped = tableJQuery.fn.dataTable.util.escapeRegex(value);
+    function updateFilterSummary(config) {
+      const filter = filterControls.get(config.colIdx);
+      const values = [...filter.selected];
+      filter.summary.textContent = values.length
+        ? values.join(", ")
+        : config.defaultLabel;
+      filter.summary.setAttribute(
+        "aria-label",
+        `${config.label}: ${filter.summary.textContent}`,
+      );
+      filter.options.querySelectorAll("input").forEach((checkbox) => {
+        checkbox.checked = filter.selected.has(checkbox.value);
+      });
+    }
+
+    function applyColumnFilter(config) {
+      const values = [...filterControls.get(config.colIdx).selected];
+      const escaped = values.map((value) =>
+        tableJQuery.fn.dataTable.util.escapeRegex(value),
+      );
       dtTable
         .column(config.colIdx)
-        .search(value ? `^${escaped}$` : "", true, false);
+        .search(values.length ? `^(?:${escaped.join("|")})$` : "", true, false);
+      updateFilterSummary(config);
     }
 
     function updateActiveFilters() {
@@ -284,34 +313,93 @@
         });
       }
       filterConfigs.forEach((config) => {
-        const select = filterSelects.get(config.colIdx);
-        if (!select.value) return;
-        addPill(`${config.label}: ${select.value}`, () => {
-          select.value = "";
-          applyColumnFilter(config, "");
-          dtTable.draw();
-          select.focus();
+        const filter = filterControls.get(config.colIdx);
+        filter.selected.forEach((value) => {
+          addPill(`${config.label}: ${value}`, () => {
+            filter.selected.delete(value);
+            applyColumnFilter(config);
+            dtTable.draw();
+            filter.summary.focus();
+          });
         });
       });
       activeFiltersRow.hidden = !pillsContainer.childElementCount;
     }
 
     filterConfigs.forEach((config) => {
-      const label = document.createElement("label");
-      label.className = "dt-filter-item";
+      const item = document.createElement("div");
+      item.className = "dt-filter-item";
       const caption = document.createElement("span");
       caption.className = "dt-filter-label ntgc-form-input--label";
       caption.textContent = config.label;
-      const select = document.createElement("select");
-      select.className =
+      const dropdown = document.createElement("div");
+      dropdown.className = "dt-filter-dropdown";
+      const summary = document.createElement("button");
+      summary.type = "button";
+      summary.className =
         "dt-filter-select ntgc-select ntgc-select--block ntgc-select-input--filter";
-      select.addEventListener("change", () => {
-        applyColumnFilter(config, select.value);
+      const panel = document.createElement("div");
+      panel.className = "dt-filter-panel";
+      panel.id = `${table.id}-filter-${config.colIdx}`;
+      panel.hidden = true;
+      summary.setAttribute("aria-controls", panel.id);
+      summary.setAttribute("aria-expanded", "false");
+      function setOpen(open) {
+        panel.hidden = !open;
+        summary.setAttribute("aria-expanded", String(open));
+      }
+      summary.addEventListener("click", () => setOpen(panel.hidden));
+      const reset = document.createElement("button");
+      reset.type = "button";
+      reset.className = "dt-clear-filters";
+      reset.textContent = config.defaultLabel;
+      const options = document.createElement("div");
+      options.setAttribute("role", "group");
+      options.setAttribute("aria-label", config.label);
+      const selected = new Set();
+      options.addEventListener("change", (event) => {
+        const checkbox = event.target;
+        if (checkbox.checked) {
+          selected.add(checkbox.value);
+        } else {
+          selected.delete(checkbox.value);
+        }
+        applyColumnFilter(config);
         dtTable.draw();
       });
-      filterSelects.set(config.colIdx, select);
-      label.append(caption, select);
-      filterBar.append(label);
+      reset.addEventListener("click", () => {
+        selected.clear();
+        applyColumnFilter(config);
+        dtTable.draw();
+      });
+      dropdown.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setOpen(false);
+          summary.focus();
+        }
+      });
+      dropdown.addEventListener("focusout", (event) => {
+        if (event.relatedTarget && !dropdown.contains(event.relatedTarget)) {
+          setOpen(false);
+        }
+      });
+      filterControls.set(config.colIdx, {
+        selected,
+        summary,
+        options,
+        dropdown,
+        setOpen,
+      });
+      panel.append(reset, options);
+      dropdown.append(summary, panel);
+      item.append(caption, dropdown);
+      filterBar.append(item);
+    });
+    document.addEventListener("click", (event) => {
+      filterControls.forEach(({ dropdown, setOpen }) => {
+        if (!dropdown.contains(event.target)) setOpen(false);
+      });
     });
     refreshFilterOptions();
     filterBar.prepend(wrapper.querySelector(".dataTables_filter"));
@@ -364,11 +452,11 @@
     clearButton.addEventListener("click", () => {
       dtTable.search("");
       filterConfigs.forEach((config) => {
-        filterSelects.get(config.colIdx).value = "";
-        applyColumnFilter(config, "");
+        filterControls.get(config.colIdx).selected.clear();
+        applyColumnFilter(config);
       });
       dtTable.draw();
-      filterSelects.get(filterConfigs[0].colIdx).focus();
+      filterControls.get(filterConfigs[0].colIdx).summary.focus();
     });
     table.addEventListener("editor:saved", (event) => {
       const restoreScroll = preserveScrollPosition(table);
@@ -382,9 +470,9 @@
           !document.activeElement ||
           document.activeElement === document.body
         ) {
-          filterSelects
+          filterControls
             .get(filterConfigs[0].colIdx)
-            .focus({ preventScroll: true });
+            .summary.focus({ preventScroll: true });
         }
       }
       restoreScroll();

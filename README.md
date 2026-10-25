@@ -4,7 +4,8 @@ Inline editor for a Squiz Matrix Asset Listing. The UI edits asset status, page 
 
 ## Table controls
 
-- Status, Type, and Content owner dropdowns use exact matches and combine with AND.
+- Status and Type dropdowns allow multiple checkbox selections without holding Ctrl or Command. Selected values use exact matches and combine with OR within each dropdown, and AND between Status, Type, and search.
+- No selections means all values. Use "All statuses" or "All types" to reset one dropdown, remove individual selections using their applied-filter pills, or use "Clear filters" to reset everything. Dropdowns support keyboard navigation with Enter/Space and Tab; Escape closes the dropdown.
 - Search checks all columns. Applied filter pills can be removed individually or cleared together.
 - Headers toggle ascending/descending sorting with mouse or Enter. Page name A-Z is the default order.
 - Pagination starts at 10 rows and includes a page-length selector.
