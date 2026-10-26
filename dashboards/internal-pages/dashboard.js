@@ -1,7 +1,7 @@
 window.MetadataDashboardEditor.initialise({
   tableSelector: "#page-metadata-editor",
   labels: { name: "Page name", description: "Page description" },
-  editableFields: ["status", "name", "web-path", "description"],
+  editableFields: ["status", "name", "description"],
   nameColumn: 3,
   dateColumns: [6],
   emptyMessage: "No pages available.",

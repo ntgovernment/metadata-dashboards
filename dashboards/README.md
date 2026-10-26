@@ -12,12 +12,16 @@ Squiz pages can keep using their current branch and asset paths.
 | External pages | `dashboards/external-pages` | `external` at `054dd45` | Multi-select Status and Type |
 | Documents | `dashboards/documents` | New, using the shared editor | Single-select Status, File Type, Document Type, Resource Status |
 
-The external variant deliberately preserves the current external branch,
-including its inline editor and API loading. It has **not** been converted
-to read-only. Removing editing would be a separate, explicitly approved change.
+The external variant is read-only, with seven columns and no Content owner.
+It loads table controls only, not the editor or Matrix API scripts.
+Status and Type retain multi-select filtering.
 
 Shared styling, table controls, and inline editing live in `dashboards/shared`.
-All variants reuse the unchanged `src/matrix-api.js` integration.
+Internal pages allow editing Status, Page name, and Page description only.
+URL is display-only, including when an older listing contains web-path editing
+attributes; remove those attributes from the URL cell in the Matrix Default
+Format to keep its markup consistent with the preview.
+Editable internal and documents variants reuse the unchanged `src/matrix-api.js` integration.
 Variant entry points specify only their differing
 filters, labels, editable fields, date columns, and metadata mappings.
 The existing jQuery and DataTables dependencies are reused; no new libraries
@@ -81,8 +85,13 @@ Stylesheet imports resolve relative to the variant stylesheet. Confirm in DEV
 that Git File Bridge serves the relative `../shared/dashboard.css` request.
 The templates retain Bootstrap ahead of the dashboard stylesheet.
 
-For internal/external pages, retain the existing listing Default Format and
-eight-column order. The included `index.html` files are local examples, not
+For internal pages, retain the existing listing Default Format and eight-column
+order. For external pages, use `external-pages/squiz-row-format.html`: seven
+display-only cells, without Content owner or editing attributes. Preserve the
+existing human-readable asset type and last-updated date formatting in Matrix
+(the date column supports dates such as `30 Oct 2024`).
+The external Page Contents template intentionally omits all Matrix/editor scripts.
+The included `index.html` files are local examples, not
 production Asset Listing templates.
 
 For documents, use `documents/squiz-row-format.html` as the listing Default

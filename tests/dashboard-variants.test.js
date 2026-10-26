@@ -10,7 +10,16 @@ function loadConfig(variant) {
     "utf8",
   );
   runInNewContext(source, {
+    document: {
+      readyState: "complete",
+      querySelector: () => ({ querySelectorAll: () => [] }),
+    },
     window: {
+      MetadataDashboardTable: {
+        initialise(table, value) {
+          config = JSON.parse(JSON.stringify(value));
+        },
+      },
       MetadataDashboardEditor: {
         initialise(value) {
           config = JSON.parse(JSON.stringify(value));
@@ -28,15 +37,30 @@ test("internal pages retain three single-select filters and page date sorting", 
   ]);
   assert.ok(config.filters.every((filter) => !filter.multiple));
   assert.deepEqual(config.dateColumns, [6]);
-  assert.deepEqual(config.editableFields, ["status", "name", "web-path", "description"]);
+  assert.deepEqual(config.editableFields, ["status", "name", "description"]);
 });
 
-test("external pages alone opt into multi-select without changing editing", () => {
+test("external pages alone opt into multi-select without enabling editing", () => {
   const config = loadConfig("external-pages");
   assert.deepEqual(config.filters.map(({ label }) => label), ["Status", "Type"]);
   assert.ok(config.filters.every((filter) => filter.multiple));
-  assert.deepEqual(config.editableFields, loadConfig("internal-pages").editableFields);
+  assert.equal(config.editableFields, undefined);
   assert.deepEqual(config.dateColumns, [6]);
+});
+
+test("external preview and Matrix templates have seven read-only columns and no API scripts", () => {
+  for (const file of ["index.html", "squiz-page-contents.html", "squiz-row-format.html"]) {
+    const markup = readFileSync(
+      new URL(`../dashboards/external-pages/${file}`, import.meta.url),
+      "utf8",
+    );
+    assert.doesNotMatch(markup, /Content owner|data-editor-field|edit_area|matrix-api|shared\/editor\.js|129303/);
+    if (file === "squiz-row-format.html") {
+      assert.equal((markup.match(/<td>/g) ?? []).length, 7);
+    } else {
+      assert.equal((markup.match(/<th scope=/g) ?? []).length, 7);
+    }
+  }
 });
 
 test("documents use the requested filter columns and description metadata field", () => {

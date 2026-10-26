@@ -11,9 +11,7 @@
       import jQuery from "jquery";
       import "datatables.net-bs5";
       window.jQuery = jQuery;
-      await import("../../src/matrix-api.js");
       await import("../shared/table-controls.js");
-      await import("../shared/editor.js");
       await import("./dashboard.js");
     </script>
   </head>
@@ -28,51 +26,46 @@
             <th scope="col">Type</th>
             <th scope="col">Page name</th>
             <th scope="col">URL</th>
-            <th scope="col">Page description</th>
-            <th scope="col">Page last updated</th>
-            <th scope="col">Content owner</th>
+            <th scope="col">Description</th>
+            <th scope="col">Last updated</th>
           </tr>
         </thead>
         <tbody>
           <tr data-asset-id="local-example-1001">
             <td>local-example-1001</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Live</div></td>
+            <td>Live</td>
             <td>Standard Page</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">About our services</div></td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="web-path" data-web-path="/about/our-services">https://example.local/about/our-services</div></td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Find information about the services we provide.</div></td>
+            <td>About our services</td>
+            <td>https://example.local/about/our-services</td>
+            <td>Find information about the services we provide.</td>
             <td>30 Oct 2024</td>
-            <td>Communications</td>
           </tr>
           <tr data-asset-id="local-example-1002">
             <td>local-example-1002</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Safe Editing</div></td>
+            <td>Safe Editing</td>
             <td>Standard Page</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">Contact us</div></td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="web-path" data-web-path="/contact">https://example.local/contact</div></td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Ways to contact the department.</div></td>
+            <td>Contact us</td>
+            <td>https://example.local/contact</td>
+            <td>Ways to contact the department.</td>
             <td>05 Feb 2024</td>
-            <td>Digital services</td>
           </tr>
           <tr data-asset-id="local-example-1003">
             <td>local-example-1003</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Approved To Go Live</div></td>
+            <td>Approved To Go Live</td>
             <td>Redirect Page</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">Apply online</div></td>
+            <td>Apply online</td>
             <td>https://example.local/apply</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Apply for services online.</div></td>
+            <td>Apply for services online.</td>
             <td>03 May 2023</td>
-            <td>Digital services</td>
           </tr>
           <tr data-asset-id="local-example-1004">
             <td>local-example-1004</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="status">Under Construction</div></td>
+            <td>Under Construction</td>
             <td>Standard Page</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="name">News and updates</div></td>
+            <td>News and updates</td>
             <td>https://example.local/news</td>
-            <td class="metadata-editor"><div class="edit_area" data-editor-field="description" data-metadatafieldid="266108">Latest department news.</div></td>
+            <td>Latest department news.</td>
             <td>01 January 2025</td>
-            <td>Communications</td>
           </tr>
         </tbody>
       </table>
