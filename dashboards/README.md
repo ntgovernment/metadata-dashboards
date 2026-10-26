@@ -1,8 +1,9 @@
 # Isolated dashboard variants
 
-These dashboards are staged on `refactor/dashboard-variants`. The existing
-root `index.html`, `src/`, and tracked `dist/` files are unchanged. Existing
-Squiz pages can keep using their current branch and asset paths.
+These dashboards are staged on `refactor/dashboard-variants`. All Squiz pages
+now use dashboard-specific entry points. The legacy `src/editor.js`,
+`src/editor.css`, and tracked `dist/editor.*` files have been removed.
+The root `index.html` is a local dashboard chooser.
 
 ## Variants
 
@@ -31,9 +32,9 @@ are introduced.
 
 ```sh
 npm ci
-npm run dev:dashboards
+npm run dev
 npm run test:dashboards
-npm run build:dashboards
+npm run build
 ```
 
 Open the Vite server at:
@@ -43,8 +44,9 @@ Open the Vite server at:
 - `/dashboards/documents/`
 
 Saves use the existing mock API when the Matrix API constructor is absent.
-`build:dashboards` builds all three previews into ignored `dashboard-build/`,
-without overwriting the existing tracked `dist/` files.
+`build` builds the chooser and all three previews into ignored `dashboard-build/`.
+`npm run preview` serves that output. The previous `dev:dashboards` and
+`build:dashboards` commands remain aliases for the default commands.
 
 ## Git File Bridge configuration
 
@@ -120,7 +122,8 @@ in Matrix DEV.
 
 ## DEV verification and release
 
-1. Confirm unchanged live branch references and legacy paths.
+1. Confirm every deployed page uses the new entry points before updating its
+   bridge to a revision that removes the legacy editor paths.
 2. Verify internal single-select filters, including Content owner, against
    `origin/main`; verify external multi-select label clicks against `054dd45`.
 3. Verify column order, sorting (including page dates), search, filter pills,

@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "dev:dashboards": "vite --config vite.dashboards.config.js",
-    "build:dashboards": "vite build --config vite.dashboards.config.js",
+    "dev:dashboards": "vite",
+    "build:dashboards": "vite build",
     "test:dashboards": "node --test tests/dashboard-variants.test.js",
     "preview": "vite preview"
   },

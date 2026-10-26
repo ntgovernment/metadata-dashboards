@@ -1,7 +1,18 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
+
+test("the root chooser links to every dashboard without legacy editor files", () => {
+  const markup = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  for (const variant of ["internal-pages", "external-pages", "documents"]) {
+    assert.ok(markup.includes(`./dashboards/${variant}/index.html`));
+    assert.ok(existsSync(new URL(`../dashboards/${variant}/index.html`, import.meta.url)));
+  }
+  for (const file of ["src/editor.js", "src/editor.css", "dist/editor.js", "dist/editor.css"]) {
+    assert.equal(existsSync(new URL(`../${file}`, import.meta.url)), false);
+  }
+});
 
 function loadConfig(variant) {
   let config;
