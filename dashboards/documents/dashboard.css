@@ -1,0 +1,19 @@
+@import "../shared/dashboard.css";
+
+#page-metadata-editor :is(th, td):nth-child(5) {
+  min-width: 300px;
+}
+
+#page-metadata-editor :is(th, td):nth-child(6) {
+  min-width: 180px;
+}
+
+#page-metadata-editor :is(th, td):nth-child(7) {
+  min-width: 160px;
+  white-space: normal;
+}
+
+#page-metadata-editor :is(th, td):nth-child(8) {
+  min-width: 280px;
+  white-space: normal;
+}

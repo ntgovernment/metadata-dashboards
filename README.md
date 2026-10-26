@@ -1,5 +1,10 @@
 # Page Description Editor
 
+The isolated multi-dashboard refactor is documented in
+[dashboards/README.md](dashboards/README.md). It adds separate internal-pages,
+external-pages, and documents entry points without changing the legacy files
+or existing deployment paths described below.
+
 Inline editor for a Squiz Matrix Asset Listing. The UI edits asset status, page name, web path, and `seo.description` metadata. jQuery and DataTables provide the same table controls as the documents metadata editor; Matrix API integration remains separate.
 
 ## Table controls
