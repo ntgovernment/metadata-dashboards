@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documents metadata dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+    <script type="module">
+      import "bootstrap/dist/css/bootstrap.min.css";
+      import "./dashboard.css";
+      import jQuery from "jquery";
+      import "datatables.net-bs5";
+      window.jQuery = jQuery;
+      await import("../../src/matrix-api.js");
+      await import("../shared/table-controls.js");
+      await import("../shared/editor.js");
+      await import("./dashboard.js");
+    </script>
+  </head>
+  <body class="ntg-central au-grid">
+    <main class="editor-page ntgc-body">
+      <h1>Documents metadata dashboard</h1>
+      <table id="page-metadata-editor" class="metadata-table table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Asset ID</th>
+            <th scope="col">Status</th>
+            <th scope="col">File Type</th>
+            <th scope="col">Name</th>
+            <th scope="col">Description</th>
+            <th scope="col">Document Type</th>
+            <th scope="col">Resource Status</th>
+            <th scope="col">URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-asset-id="local-document-1001">
+            <td>local-document-1001</td>
+            <td><div class="edit_area" data-editor-field="status">Live</div></td>
+            <td>PDF</td>
+            <td><div class="edit_area" data-editor-field="name">Annual report</div></td>
+            <td><div class="edit_area" data-editor-field="description" data-metadatafieldid="395963">Department annual report.</div></td>
+            <td>Report</td>
+            <td>Current</td>
+            <td><a href="https://example.local/annual-report.pdf">https://example.local/annual-report.pdf</a></td>
+          </tr>
+          <tr data-asset-id="local-document-1002">
+            <td>local-document-1002</td>
+            <td><div class="edit_area" data-editor-field="status">Safe Editing</div></td>
+            <td>DOCX</td>
+            <td><div class="edit_area" data-editor-field="name">Application form</div></td>
+            <td><div class="edit_area" data-editor-field="description" data-metadatafieldid="395963">Apply for a service.</div></td>
+            <td>Form</td>
+            <td>Current</td>
+            <td><a href="https://example.local/application.docx">https://example.local/application.docx</a></td>
+          </tr>
+          <tr data-asset-id="local-document-1003">
+            <td>local-document-1003</td>
+            <td><div class="edit_area" data-editor-field="status">Archive</div></td>
+            <td>PDF</td>
+            <td><div class="edit_area" data-editor-field="name">Previous policy</div></td>
+            <td><div class="edit_area" data-editor-field="description" data-metadatafieldid="395963">Superseded policy.</div></td>
+            <td>Policy</td>
+            <td>Superseded</td>
+            <td><a href="https://example.local/previous-policy.pdf">https://example.local/previous-policy.pdf</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="editor-results" role="status" aria-live="polite" aria-atomic="true"></div>
+    </main>
+  </body>
+</html>
