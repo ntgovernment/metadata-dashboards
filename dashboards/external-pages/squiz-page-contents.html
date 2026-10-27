@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="%globals_asset_url_with_hash:BRIDGE_ASSET_ID:dashboards/external-pages/dashboard.css%">
+
+<table id="page-metadata-editor" class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Asset ID</th>
+      <th scope="col">Status</th>
+      <th scope="col">Type</th>
+      <th scope="col">Page name</th>
+      <th scope="col">URL</th>
+      <th scope="col">Description</th>
+      <th scope="col">Last updated</th>
+    </tr>
+  </thead>
+  <tbody>%asset_listing%</tbody>
+</table>
+<div class="editor-results" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="%globals_asset_url_with_hash:BRIDGE_ASSET_ID:src/jquery-3.4.1.min.js%"></script>
+<script src="%globals_asset_url_with_hash:BRIDGE_ASSET_ID:src/datatables.lib.js%"></script>
+<script src="%globals_asset_url_with_hash:BRIDGE_ASSET_ID:dashboards/shared/table-controls.js%"></script>
+<script src="%globals_asset_url_with_hash:BRIDGE_ASSET_ID:dashboards/external-pages/dashboard.js%"></script>
