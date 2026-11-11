@@ -4,7 +4,7 @@ Three Squiz Matrix Asset Listing dashboards share styling and table controls:
 
 | Dashboard | Entry point | Editing | Filters |
 | --- | --- | --- | --- |
-| Internal pages | `dashboards/internal-pages/dashboard.js` | Status, Page name, Page description | Single-select Status, Type, Content owner |
+| Internal pages | `dashboards/internal-pages/dashboard.js` | Status, Page name, Page description, Content owner | Single-select Status, Type, Content owner |
 | External pages | `dashboards/external-pages/dashboard.js` | None | Multi-select Status, Type |
 | Documents | `dashboards/documents/dashboard.js` | Status, Name, Description | Single-select Status, File Type, Document Type, Resource Status |
 
@@ -51,4 +51,9 @@ removed after migration to the dashboard-specific entry points. Do not reference
 Confirm metadata IDs, API access, permissions, workflow transitions, and
 stylesheet imports in Matrix DEV before release. Description saves for documents
 currently target metadata field `395963`; verify it in the target environment.
-No automated pushes or changes to Matrix bridge settings are performed.
+Internal Content owner saves target metadata field `266101` and store a
+JSON-encoded one-item asset-ID array, consistent with the listing's
+`json_decode` display transformation. Confirm this format and the metadata ID in
+Matrix DEV. Production saves refresh the listing so Matrix can resolve the
+asset name. No automated pushes or changes to Matrix bridge settings are
+performed.

@@ -18,11 +18,11 @@ It loads table controls only, not the editor or Matrix API scripts.
 Status and Type retain multi-select filtering.
 
 Shared styling, table controls, and inline editing live in `dashboards/shared`.
-Internal pages allow editing Status, Page name, and Page description only.
+Internal pages allow editing Status, Page name, Page description, and Content owner.
 URL is display-only, including when an older listing contains web-path editing
 attributes; remove those attributes from the URL cell in the Matrix Default
 Format to keep its markup consistent with the preview.
-Editable internal and documents variants reuse the unchanged `src/matrix-api.js` integration.
+Editable internal and documents variants reuse `src/matrix-api.js`.
 Variant entry points specify only their differing
 filters, labels, editable fields, date columns, and metadata mappings.
 The existing jQuery and DataTables dependencies are reused; no new libraries
@@ -88,7 +88,13 @@ that Git File Bridge serves the relative `../shared/dashboard.css` request.
 The templates retain Bootstrap ahead of the dashboard stylesheet.
 
 For internal pages, retain the existing listing Default Format and eight-column
-order. For external pages, use `external-pages/squiz-row-format.html`: seven
+order. The Content owner cell uses metadata field `266101`, renders the resolved
+asset name, and must expose the stored asset ID as `data-asset-id` for editing.
+The editor stores that ID as a JSON-encoded one-item array; confirm the field's
+value format and ID in Matrix DEV. Production saves refresh the page so Matrix
+can resolve the new name. The local mock only accepts known Contact IDs under
+folder `283997`; production folder membership is not verified by the current
+Matrix API integration. For external pages, use `external-pages/squiz-row-format.html`: seven
 display-only cells, without Content owner or editing attributes. Preserve the
 existing human-readable asset type and last-updated date formatting in Matrix
 (the date column supports dates such as `30 Oct 2024`).

@@ -4,6 +4,7 @@
     const {
       getWebPath,
       isLocalDevelopment,
+      updateContentOwner,
       updateMetadata,
       updateName,
       updateStatus,
@@ -89,6 +90,7 @@
         name: config.labels.name,
         "web-path": "Web path",
         description: config.labels.description,
+        "content-owners": config.labels["content-owners"],
       }[field];
     }
 
@@ -125,6 +127,12 @@
       control.value = value;
       if (field === "description") {
         control.rows = 3;
+      } else if (field === "content-owners") {
+        control.type = "number";
+        control.min = "1";
+        control.step = "1";
+        control.inputMode = "numeric";
+        control.title = `Enter an asset ID from Contacts (${config.contentOwnerFolderId}).`;
       } else {
         control.type = "text";
       }
@@ -148,6 +156,10 @@
         (!value.startsWith("/") || value.includes("://"))
       ) {
         return "Web path must begin with / and must not be a full URL.";
+      }
+
+      if (field === "content-owners" && !/^\d+$/.test(value)) {
+        return "Enter a numeric Content owner asset ID.";
       }
 
       return "";
@@ -203,6 +215,18 @@
             cell,
             isLocalDevelopment() ? `https://example.local${value}` : value,
           );
+        } else if (field === "content-owners") {
+          const owner = await updateContentOwner(
+            assetId,
+            config.metadataFields?.[field] ?? cell.dataset.metadatafieldid,
+            value,
+          );
+          cell.dataset.assetId = owner.assetId;
+          if (!owner.name) {
+            window.location.reload();
+            return true;
+          }
+          restoreCell(cell, owner.name);
         } else {
           await updateMetadata(
             assetId,
@@ -277,6 +301,8 @@
           );
           return;
         }
+      } else if (field === "content-owners") {
+        editValue = cell.dataset.assetId || "";
       }
 
       const control = makeControl(field, editValue);

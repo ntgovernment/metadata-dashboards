@@ -48,7 +48,9 @@ test("internal pages retain three single-select filters and page date sorting", 
   ]);
   assert.ok(config.filters.every((filter) => !filter.multiple));
   assert.deepEqual(config.dateColumns, [6]);
-  assert.deepEqual(config.editableFields, ["status", "name", "description"]);
+  assert.deepEqual(config.editableFields, ["status", "name", "description", "content-owners"]);
+  assert.deepEqual(config.metadataFields, { "content-owners": "266101" });
+  assert.equal(config.contentOwnerFolderId, "283997");
 });
 
 test("external pages alone opt into multi-select without enabling editing", () => {
@@ -100,4 +102,46 @@ test("documents listing template uses only the approved editable fields", () => 
   }
   assert.ok(markup.includes('data-metadatafieldid="395963"'));
   assert.equal((markup.match(/<td>/g) ?? []).length, 8);
+});
+
+test("local Content owner saves resolve Contact asset IDs to names", async () => {
+  const window = { setTimeout, clearTimeout };
+  runInNewContext(readFileSync(new URL("../src/matrix-api.js", import.meta.url), "utf8"), {
+    window,
+  });
+  const owner = await window.PageDescriptionEditorApi.updateContentOwner(
+    "local-page-1",
+    "266101",
+    "725680",
+  );
+  assert.deepEqual({ ...owner }, {
+    assetId: "725680",
+    name: "Strategy and Performance division",
+  });
+  await assert.rejects(
+    window.PageDescriptionEditorApi.updateContentOwner("local-page-1", "266101", "123"),
+    /under Contacts/,
+  );
+});
+
+test("production Content owner saves use a one-item JSON asset reference", async () => {
+  let savedOptions;
+  class MatrixApiMock {
+    setMetadata(options) {
+      savedOptions = options;
+      options.dataCallback("saved");
+    }
+  }
+  const window = { Squiz_Matrix_API: MatrixApiMock };
+  runInNewContext(readFileSync(new URL("../src/matrix-api.js", import.meta.url), "utf8"), {
+    window,
+  });
+  await window.PageDescriptionEditorApi.updateContentOwner(
+    "page-asset-1",
+    "266101",
+    "725680",
+  );
+  assert.equal(savedOptions.asset_id, "page-asset-1");
+  assert.equal(savedOptions.field_id, "266101");
+  assert.equal(savedOptions.field_val, '["725680"]');
 });
