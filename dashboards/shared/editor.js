@@ -128,10 +128,10 @@
       if (field === "description") {
         control.rows = 3;
       } else if (field === "content-owners") {
-        control.type = "number";
-        control.min = "1";
-        control.step = "1";
+        control.type = "text";
         control.inputMode = "numeric";
+        control.pattern = "[0-9]*";
+        control.placeholder = "Asset ID";
         control.title = `Enter an asset ID from Contacts (${config.contentOwnerFolderId}).`;
       } else {
         control.type = "text";
@@ -147,7 +147,7 @@
     }
 
     function validate(field, value) {
-      if (field !== "description" && !value.trim()) {
+      if (field !== "description" && field !== "content-owners" && !value.trim()) {
         return `${getLabel(field)} cannot be empty.`;
       }
 
@@ -158,7 +158,7 @@
         return "Web path must begin with / and must not be a full URL.";
       }
 
-      if (field === "content-owners" && !/^\d+$/.test(value)) {
+      if (field === "content-owners" && value && !/^\d+$/.test(value)) {
         return "Enter a numeric Content owner asset ID.";
       }
 
@@ -222,7 +222,7 @@
             value,
           );
           cell.dataset.assetId = owner.assetId;
-          if (!owner.name) {
+          if (owner.name === null || owner.name === undefined) {
             window.location.reload();
             return true;
           }

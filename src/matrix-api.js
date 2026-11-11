@@ -112,14 +112,21 @@ window.PageDescriptionEditorApi = (() => {
   }
 
   async function updateContentOwner(assetId, fieldId, ownerAssetId) {
-    const value = JSON.stringify([ownerAssetId]);
+    const normalizedOwnerAssetId = String(ownerAssetId ?? "").trim();
+    const value = normalizedOwnerAssetId ? JSON.stringify([normalizedOwnerAssetId]) : "[]";
+
     if (isLocalDevelopment()) {
-      const owner = mockContentOwners.get(ownerAssetId);
+      if (!normalizedOwnerAssetId) {
+        await mockSave(assetId, `metadata:${fieldId}`, value);
+        return { assetId: "", name: "" };
+      }
+
+      const owner = mockContentOwners.get(normalizedOwnerAssetId);
       if (!owner || owner.folderId !== "283997") {
         throw new Error("Enter an asset ID for an asset under Contacts (283997).");
       }
       await mockSave(assetId, `metadata:${fieldId}`, value);
-      return { assetId: ownerAssetId, name: owner.name };
+      return { assetId: normalizedOwnerAssetId, name: owner.name };
     }
 
     await callMatrix("setMetadata", {
@@ -127,7 +134,7 @@ window.PageDescriptionEditorApi = (() => {
       field_id: fieldId,
       field_val: value,
     });
-    return { assetId: ownerAssetId, name: null };
+    return { assetId: normalizedOwnerAssetId, name: normalizedOwnerAssetId ? null : "" };
   }
 
   return {

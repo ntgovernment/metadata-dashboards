@@ -145,3 +145,37 @@ test("production Content owner saves use a one-item JSON asset reference", async
   assert.equal(savedOptions.field_id, "266101");
   assert.equal(savedOptions.field_val, '["725680"]');
 });
+
+test("empty Content owner saves as a cleared array value", async () => {
+  let savedOptions;
+  class MatrixApiMock {
+    setMetadata(options) {
+      savedOptions = options;
+      options.dataCallback("saved");
+    }
+  }
+  const window = { Squiz_Matrix_API: MatrixApiMock };
+  runInNewContext(readFileSync(new URL("../src/matrix-api.js", import.meta.url), "utf8"), {
+    window,
+  });
+
+  await window.PageDescriptionEditorApi.updateContentOwner(
+    "page-asset-empty",
+    "266101",
+    "",
+  );
+  assert.equal(savedOptions.asset_id, "page-asset-empty");
+  assert.equal(savedOptions.field_id, "266101");
+  assert.equal(savedOptions.field_val, "[]");
+
+  const localWindow = { setTimeout, clearTimeout };
+  runInNewContext(readFileSync(new URL("../src/matrix-api.js", import.meta.url), "utf8"), {
+    window: localWindow,
+  });
+  const result = await localWindow.PageDescriptionEditorApi.updateContentOwner(
+    "local-page-empty",
+    "266101",
+    "",
+  );
+  assert.deepEqual({ ...result }, { assetId: "", name: "" });
+});
